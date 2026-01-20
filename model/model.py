@@ -1,3 +1,5 @@
+import mysql
+
 from database.DB_connect import get_connection
 from model.automobile import Automobile
 from model.noleggio import Noleggio
@@ -37,6 +39,22 @@ class Autonoleggio:
         """
 
         # TODO
+        try:
+            risultati = []
+            cnx = get_connection()
+            cursor = cnx.cursor(dictionary=True)
+            query = "SELECT * FROM automobile"
+            cursor.execute(query)
+            for row in cursor:
+                auto = Automobile(row['codice'], row['marca'], row['modello'], row['anno'], row['posti'], row['disponibile'])
+                risultati.append(auto)
+            cursor.close()
+            cnx.close()
+            return risultati
+        except mysql.connector.Error as err:
+            print(err)
+            return None
+
 
     def cerca_automobili_per_modello(self, modello) -> list[Automobile] | None:
         """
@@ -45,3 +63,39 @@ class Autonoleggio:
             :return: una lista con tutte le automobili di marca e modello indicato oppure None
         """
         # TODO
+
+        risultati = []
+        query = """SELECT * 
+                   FROM automobile
+                   WHERE automobile.modello = %s"""
+        try:
+            cnx = get_connection()
+            cursor = cnx.cursor(dictionary=True)
+            cursor.execute(query, (modello,))
+
+            for row in cursor:
+                auto = Automobile(
+                    row['codice'],
+                    row['marca'],
+                    row['modello'],
+                    row['anno'],
+                    row['posti'],
+                    row['disponibile']
+                )
+                risultati.append(auto)
+
+            cursor.close()
+            cnx.close()
+            return risultati
+
+        except mysql.connector.Error as err:
+            # il model NON decide cosa mostrare: segnala il problema
+            print(err)
+            return None
+
+
+
+
+
+
+
